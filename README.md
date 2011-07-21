@@ -1,11 +1,11 @@
-## Boink is photobooth software made simple.
-
+Boink is photobooth software made simple.
+===
 Use it at wedding, parties, office gatherings.
 
-### Dependencies
+Dependencies
+---
+  - Webkit browser (Chrome)
 
-- Webkit browser (Chrome)
-
-### Links
-
-- [libgphoto2](http://www.gphoto.org/proj/libgphoto2/): camera USB (PTP) interface lib.
+Links
+---
+  - [libgphoto2](http://www.gphoto.org/proj/libgphoto2/): camera USB (PTP) interface lib.
