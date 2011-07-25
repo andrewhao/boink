@@ -3,6 +3,7 @@
 config/database.yml
 log/*
 tmp/*
+.redcar/*
 
 ## generic files to ignore
 *~
