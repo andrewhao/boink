@@ -1,4 +1,4 @@
-module ApiHelper
+module BoothHelper
   def call_rake(task, options = {})
     options[:rails_env] ||= Rails.env
     args = options.map { |n, v| "#{n.to_s.upcase}='#{v}'" }
