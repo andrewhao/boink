@@ -37,7 +37,7 @@ body {
  .awesome:hover                          { background-color: #111; color: #fff; }
  .awesome:active                         { top: 1px; }
  .small.awesome, .small.awesome:visited          { font-size: 11px; padding: ; }
- .awesome, .awesome:visited,ß
+ .awesome, .awesome:visited,
  .medium.awesome, .medium.awesome:visited        { font-size: 13px; font-weight: bold; line-height: 1; text-shadow: 0 -1px 1px rgba(0,0,0,0.25); }
  .large.awesome, .large.awesome:visited          { font-size: 5em; padding: 0.25em 0.5em 0.3em; }
 
@@ -53,3 +53,18 @@ body {
  .orange.awesome:hover                           { background-color: #d45500; }
  .yellow.awesome, .yellow.awesome:visited        { background-color: #ffb515; }
  .yellow.awesome:hover                           { background-color: #fc9200; }
+ 
+ /* 
+  * Now make em glow. The green one at least.
+  * http://www.zurb.com/playground/radioactive-buttons
+  */
+button.awesome.green {
+    -webkit-animation-name: greenPulse;
+    -webkit-animation-duration: 2s;
+    -webkit-animation-iteration-count: infinite;
+}
+@-webkit-keyframes greenPulse {
+    from { background-color: #749a02; box-shadow: 0 0 9px #333; }
+    50% { background-color: #91bd09; box-shadow: 0 0 18px #91bd09; }
+    to { background-color: #749a02; box-shadow: 0 0 9px #333; }
+}
