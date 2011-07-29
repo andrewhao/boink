@@ -2,8 +2,8 @@ require 'json'
 
 class BoothController < ApplicationController
   PHOTO_COUNT = 4 # number of photos that will be taken
-  PHOTO_PREDELAY = 0 # delay before first photo is taken
-  PHOTO_DELAY = 10 # delay between photos being taken
+  PHOTO_PREDELAY = 5 # delay before first photo is taken
+  PHOTO_DELAY = 5 # delay between photos being taken
   
   def show
   end

@@ -1,8 +1,8 @@
 // Place your application-specific JavaScript functions and classes here
 // This file is automatically included by javascript_include_tag :defaults
-var timestamps = null;
 
 function countdown(expected) {
+    console.log('countdown with expected time of: '+expected);
     var counter = 3;
     var countdownTimer = setInterval(function() {
         console.log(counter);
@@ -18,7 +18,7 @@ function countdown(expected) {
 function snap(expected_time) {
     var now = (new Date()).getTime();
     console.log('snap at ' + now);
-    console.log('delta from expected: ' + expected_time - now);
+    console.log('delta from expected: ' + (expected_time - now));
 }
 
 $(window).ready(function () {
@@ -30,21 +30,22 @@ $(window).ready(function () {
             console.log("timestamps are: "+data.timestamps);
 
             // Set global
-            timestamps = data.timestamps;
+            var timestamps = data.timestamps;
             var time_now = (new Date()).getTime();
             var closest_ts = timestamps.pop();
-            var ts_delta = closest_ts - time_now - 3000;
+            var ts_delta = closest_ts - time_now - 4000;
             
             console.log('delta is:' + ts_delta);
 
             while(timestamps.length > 0) {
-                console.log('timestamps array is'+timestamps);
+                console.log('next expected time to snap at is:' + closest_ts);
                 // Start countdown
-                setTimeout(function() {
-                    countdown(closest_ts);
-                }, ts_delta);
+                setTimeout(function(expect) {
+                    countdown(expect);
+                }, ts_delta, closest_ts);
                 closest_ts = timestamps.pop();
-                ts_delta = closest_ts - time_now - 3000;
+                ts_delta = closest_ts - time_now - 4000;
+                console.log('delta is:' + ts_delta);
             }
 
         });
