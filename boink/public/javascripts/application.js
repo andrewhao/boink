@@ -1,6 +1,40 @@
 // Place your application-specific JavaScript functions and classes here
 // This file is automatically included by javascript_include_tag :defaults
 
+var PHOTO_PADDING = 50; // Padding for the grand photo per side
+var WINDOW_WIDTH = $(window).width();
+var WINDOW_HEIGHT = $(window).height();
+var PHOTO_PADDING = 50; // Padding on the sides and down the middle of the photo 2x2.
+
+// Given a max w and h bounds, return the dimensions
+// of the largest 4x6 rect that will fit within.
+function scale4x6(maxw, maxh) {
+    var s0 = 6/4; // width / height
+    var s1 = maxw/maxh;
+    
+    // Then the width is longer. Use the shorter side (height)
+    if (s0 <= s1) {
+        return {w: maxh * 6/4, h: maxh};
+    } else {
+        return {w: maxw, h: maxw * 4/6}
+    }
+}
+
+function PhotoView() {
+    this.container = $('#viewport');
+    this.canvas = new Raphael('viewport', $(window).width(), $(window).height());
+    this.frames = []; // List of SVG images (photos).
+}
+PhotoView.prototype.render = function() {
+    var w = WINDOW_WIDTH - PHOTO_PADDING;
+    var h = WINDOW_HEIGHT - PHOTO_PADDING;
+    var scaled = scale4x6(w, h);
+    var r = this.canvas.rect((WINDOW_WIDTH - scaled.w) / 2, (WINDOW_HEIGHT - scaled.h) / 2, scaled.w, scaled.h);
+    r.attr({'fill': 'white'});
+    
+
+}
+
 function countdown(expected) {
     console.log('countdown with expected time of: '+expected);
     var counter = 3;
@@ -23,7 +57,6 @@ function snap(expected_time) {
 
 $(window).ready(function () {
     $('button#start-button').click(function(e) {
-
         $.get('time_now', null, function(data) {
             // Temp logging
             console.log("set_id is: "+data.set_id);
@@ -47,7 +80,10 @@ $(window).ready(function () {
                 ts_delta = closest_ts - time_now - 4000;
                 console.log('delta is:' + ts_delta);
             }
-
         });
     });
+
+    p = new PhotoView();
+    p.render();
 });
+
