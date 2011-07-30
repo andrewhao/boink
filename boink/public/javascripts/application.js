@@ -15,42 +15,70 @@ function PhotoView() {
     this.container = $('#viewport');
     this.canvas = new Raphael('viewport', $(window).width(), $(window).height());
     this.frames = this.canvas.set(); // List of SVG images (photos).
+    this.all = this.canvas.set();
+    
+    this.photoBorder = 0;
+    this.compositeDim = null;
+    this.frameDim = null;
+    this.compositeOrigin = null;
+    this.compositeCenter = null;
+}
+
+PhotoView.prototype.toString = function() {
+    ret = [];
+    ret.push("Composite photo is: " + this.all[0].attr('width') + 'x' + this.all[0].attr('height'));
+    ret.push("Frame photo is: " + this.frameDim.w + 'x' + this.frameDim.h);
+    return ret.join('\n');
 }
 
 PhotoView.prototype.render = function() {
     var w = WINDOW_WIDTH - PHOTO_MARGIN;
     var h = WINDOW_HEIGHT - PHOTO_MARGIN;
-    var scaled = CameraUtils.scale4x6(w, h);
-    var photo_x = (WINDOW_WIDTH - scaled.w) / 2;
-    var photo_y = (WINDOW_HEIGHT - scaled.h) / 2;
-    var r = this.canvas.rect(photo_x, photo_y, scaled.w, scaled.h);
+    this.compositeDim = CameraUtils.scale4x6(w, h);
+    this.compositeOrigin = {
+        x: (WINDOW_WIDTH - this.compositeDim.w) / 2,
+        y: (WINDOW_HEIGHT - this.compositeDim.h) / 2
+    };
+    this.compositeCenter = {
+        x: this.compositeOrigin.x + (this.compositeDim.w/2),
+        y: this.compositeOrigin.y + (this.compositeDim.h/2)
+    }
+    var r = this.canvas.rect(this.compositeOrigin.x, this.compositeOrigin.y, this.compositeDim.w, this.compositeDim.h);
+    
     r.attr({'fill': 'white'});
     
+    this.all.push(r);
+    
     // Scale the photo padding too
-    var PHOTO_BORDER = scaled.w / 50;
+    this.photoBorder = this.compositeDim.w / 50;
 
-    //upper left
-    var frame_x = photo_x + PHOTO_BORDER;
-    var frame_y = photo_y + PHOTO_BORDER;
-    var frame_w = (scaled.w - (3*PHOTO_BORDER))/2;
-    var frame_h = (scaled.h - (3*PHOTO_BORDER))/2;
-    var frame = this.canvas.rect(frame_x, frame_y, frame_w, frame_h);
+    //upper x
+    var frame_x = this.compositeOrigin.x + this.photoBorder;
+    var frame_y = this.compositeOrigin.y + this.photoBorder;
+    this.frameDim = {
+        w: (this.compositeDim.w - (3*this.photoBorder))/2,
+        h: (this.compositeDim.h - (3*this.photoBorder))/2
+    };
+    var frame = this.canvas.rect(frame_x, frame_y, this.frameDim.w, this.frameDim.h);
     //var frame = this.canvas.image(null, frame_x, frame_y, frame_w, frame_h);
     frame.attr({'fill': 'black'});
-
     this.frames.push(frame);
+    this.all.push(frame);
     
     frame = frame.clone();
-    frame.translate(frame_w + PHOTO_BORDER, 0);
+    frame.translate(this.frameDim.w + this.photoBorder, 0);
     this.frames.push(frame);
+    this.all.push(frame);
     
     frame = frame.clone();
-    frame.translate(-(frame_w + PHOTO_BORDER), frame_h + PHOTO_BORDER);
+    frame.translate(-(this.frameDim.w + this.photoBorder), this.frameDim.h + this.photoBorder);
     this.frames.push(frame);
+    this.all.push(frame);
     
     frame = frame.clone();
-    frame.translate(frame_w + PHOTO_BORDER, 0);
+    frame.translate(this.frameDim.w + this.photoBorder, 0);
     this.frames.push(frame);
+    this.all.push(frame);
 }
 
 /**
@@ -75,11 +103,46 @@ PhotoView.prototype.updatePhotoSet = function(setId) {
                     oldframe.attr('height'));
                 // delete black rect
                 oldframe.remove();
+                view.all.push(img);
                 
                 // Store img svg obj in frames
                 view.frames[i] = img;
            }
        }
+    });
+}
+
+/**
+ * zoomFrame
+ */
+PhotoView.prototype.zoomFrame = function(idx, dir) {
+    var view = this;
+    var composite = this.all[idx];
+    var frame = this.frames[idx];
+    var frameX = frame.attr('x');
+    var frameW = frame.attr('width');
+    var frameY = frame.attr('y');
+    var frameH = frame.attr('height');
+    var centerX = frameX + frameW/2;
+    var centerY = frameY + frameH/2;
+    
+    // delta to translate to.
+    var dx = this.compositeCenter.x - centerX;
+    var dy = this.compositeCenter.y - centerY;
+    var scaleFactor = this.compositeDim.w / this.frameDim.w;
+        
+    if (dir == 'out') {
+        scaleFactor = 1;
+        dx *= -1;
+        dy *= -1;
+    }
+    
+    view.all.animate({
+        'translation': dx+','+dy
+    }, 1000, function() {
+        view.all.animate({
+            'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),
+        }, 1000)
     });
 }
 
@@ -177,6 +240,9 @@ CameraUtils.countdown = function(expected) {
 }
 
 $(window).ready(function () {
+    $('button#zoom-button').click(function(e) {
+       p.zoomFrame(0); 
+    });
     $('button#start-button').click(function(e) {
         $.get('start_snap', null, function(data) {
             // Temp logging

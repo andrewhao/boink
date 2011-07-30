@@ -34,9 +34,9 @@ class BoothController < ApplicationController
     @response = {}
     @response[:images] = [
       {:index => 0, :url => '/images/photos/1.jpg'},
-      {:index => 1, :url => '/images/photos/2.jpg'},
-      {:index => 2, :url => '/images/photos/3.jpg'},
-      {:index => 3, :url => '/images/photos/4.jpg'},
+#      {:index => 1, :url => '/images/photos/2.jpg'},
+#      {:index => 2, :url => '/images/photos/3.jpg'},
+#      {:index => 3, :url => '/images/photos/4.jpg'},
     ]
     render :json => @response
 
