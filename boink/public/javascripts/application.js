@@ -104,22 +104,37 @@ PhotoView.prototype.updatePhotoSet = function(setId) {
                     oldframe.attr('width'),
                     oldframe.attr('height'));
                 // delete black rect
-                oldframe.remove();
+                //oldframe.remove();
                 view.all.push(img);
                 
                 // Store img svg obj in frames
                 view.frames[i] = img;
            }
        }
+       setTimeout(function(p) {
+           // Zoom out
+           p.zoomFrame(State.current_frame_idx, 'out');
+           State.current_frame_idx = (State.current_frame_idx + 1) % 4
+       }, 3000, p);
     });
 }
 
 /**
- * zoomFrame
+ * zoomFrame zooms into the indicated frame.
+ * Call it once to zoom in, call it again to zoom out.
+ *
+ * @param idx Frame index
+ *   Expect zoomFrame(1) to be matched immediately by zoomFrame(1)
+ * frame: 0 (upper left), 1 (upper-right), 2 (lower-left), 3 (lower-right)
+ * @param dir 'in' or 'out'
+ *   Zoom in or out
+ *
+ * Depends on the presence of the State.zoomed object to store zoom info.
  */
 PhotoView.prototype.zoomFrame = function(idx, dir) {
     var view = this;
     var composite = this.all[idx];
+
     var frame = this.frames[idx];
     var frameX = frame.attr('x');
     var frameW = frame.attr('width');
@@ -127,31 +142,33 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
     var frameH = frame.attr('height');
     var centerX = frameX + frameW/2;
     var centerY = frameY + frameH/2;
+
+    var animSpeed = 700;
     
     // delta to translate to.
     var dx = this.compositeCenter.x - centerX;
     var dy = this.compositeCenter.y - centerY;
     var scaleFactor = this.compositeDim.w / this.frameDim.w;
         
-    if (State.zoomed) {
+    if (dir === "out" && State.zoomed) {
         scaleFactor = 1;
         dx = -State.zoomed.dx;
         dy = -State.zoomed.dy;
         view.all.animate({
             'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),        
-        }, 1000, function() {
+        }, animSpeed, 'bounce', function() {
             view.all.animate({
                 'translation': dx+','+dy
-            }, 1000)
+            }, animSpeed, '<>')
         });
         
-    } else {
+    } else if (dir !== "out") {
         view.all.animate({
             'translation': dx+','+dy
-        }, 1000, function() {
+        }, animSpeed, '<>', function() {
             view.all.animate({
                 'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),
-            }, 1000)
+            }, animSpeed, 'bounce')
         });
         
     }
@@ -245,6 +262,10 @@ CameraUtils.scale4x6 = function(maxw, maxh) {
  */
 CameraUtils.countdown = function(expected) {
     console.log('countdown with expected time of: '+expected);
+    // Zoom in
+    p.zoomFrame(State.current_frame_idx, 'in');
+    p.modalMessage('Ready?', 1000);
+
     var counter = 3;
     var countdownTimer = setInterval(function() {
         console.log(counter);
@@ -270,8 +291,6 @@ $(window).ready(function () {
             console.log("set_id is: "+data.set_id);
             console.log("timestamps are: "+data.timestamps);
             
-            p.modalMessage('Ready?', 3000);
-
             // Set global
             var timestamps = data.timestamps;
             var time_now = (new Date()).getTime();
