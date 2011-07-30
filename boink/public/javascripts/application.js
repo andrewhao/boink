@@ -16,7 +16,8 @@ var State = {
 function PhotoView() {
     this.container = $('#viewport');
     this.canvas = new Raphael('viewport', $(window).width(), $(window).height());
-    this.frames = this.canvas.set(); // List of SVG images (photos).
+    this.frames = this.canvas.set(); // List of SVG black rects
+    this.images = this.canvas.set(); // List of SVG images
     this.all = this.canvas.set();
     
     this.photoBorder = 0;
@@ -28,6 +29,8 @@ function PhotoView() {
 
 PhotoView.prototype.toString = function() {
     ret = [];
+    ret.push("Size of 'all' set: " + this.all.length);
+    ret.push("Size of 'frames' set: " + this.frames.length);
     ret.push("Composite photo is: " + this.all[0].attr('width') + 'x' + this.all[0].attr('height'));
     ret.push("Frame photo is: " + this.frameDim.w + 'x' + this.frameDim.h);
     return ret.join('\n');
@@ -62,25 +65,43 @@ PhotoView.prototype.render = function() {
         h: (this.compositeDim.h - (3*this.photoBorder))/2
     };
     var frame = this.canvas.rect(frame_x, frame_y, this.frameDim.w, this.frameDim.h);
-    //var frame = this.canvas.image(null, frame_x, frame_y, frame_w, frame_h);
     frame.attr({'fill': 'black'});
+    var img = this.canvas.image(null, frame_x, frame_y, this.frameDim.w, this.frameDim.h);
+
+    this.images.push(img);
     this.frames.push(frame);
+    this.all.push(img);
     this.all.push(frame);
     
     frame = frame.clone();
+    img = img.clone();
     frame.translate(this.frameDim.w + this.photoBorder, 0);
+    img.translate(this.frameDim.w + this.photoBorder, 0);
     this.frames.push(frame);
+    this.images.push(img);
     this.all.push(frame);
+    this.all.push(img);
     
     frame = frame.clone();
+    img = img.clone();
     frame.translate(-(this.frameDim.w + this.photoBorder), this.frameDim.h + this.photoBorder);
+    img.translate(-(this.frameDim.w + this.photoBorder), this.frameDim.h + this.photoBorder);
     this.frames.push(frame);
+    this.images.push(img);
     this.all.push(frame);
+    this.all.push(img);
     
     frame = frame.clone();
+    img = img.clone();
     frame.translate(this.frameDim.w + this.photoBorder, 0);
+    img.translate(this.frameDim.w + this.photoBorder, 0);
     this.frames.push(frame);
+    this.images.push(img);
     this.all.push(frame);
+    this.all.push(img);
+    
+    // Hide all images.
+    this.images.hide();
 }
 
 /**
@@ -95,28 +116,26 @@ PhotoView.prototype.updatePhotoSet = function(setId) {
            if (State.photoset[i] === undefined) {
                var image = images[i];
                State.photoset[i] = image;
-               var oldframe = view.frames[i];
+               var imgEl = view.images[i];
 
-               // Draw new rect
-               var img = view.canvas.image(image.url,
-                    oldframe.attr('x'),
-                    oldframe.attr('y'),
-                    oldframe.attr('width'),
-                    oldframe.attr('height'));
-                // delete black rect
-                //oldframe.remove();
-                view.all.push(img);
-                
-                // Store img svg obj in frames
-                view.frames[i] = img;
+               imgEl.attr({'src': image.url});
+               imgEl.show();
            }
        }
-       setTimeout(function(p) {
+       //view.all.animate({'rotation': '10'}, 100, function() {view.all.animate({'rotation': '-10'}, 100)});
+       
+       setTimeout(function() {
            // Zoom out
            p.zoomFrame(State.current_frame_idx, 'out');
            State.current_frame_idx = (State.current_frame_idx + 1) % 4
-       }, 3000, p);
+       }, 2000);
     });
+}
+
+PhotoView.prototype.loadImage = function(idx, url) {
+    var imgEl = this.images[idx];
+    imgEl.attr({'src': url});
+    imgEl.show();
 }
 
 /**
@@ -149,19 +168,22 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
     var dx = this.compositeCenter.x - centerX;
     var dy = this.compositeCenter.y - centerY;
     var scaleFactor = this.compositeDim.w / this.frameDim.w;
+    
+    console.log('dx,dy: ' + dx + "," + dy);
         
     if (dir === "out" && State.zoomed) {
         scaleFactor = 1;
         dx = -State.zoomed.dx;
         dy = -State.zoomed.dy;
         view.all.animate({
-            'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),        
+            'scale': [1, 1, view.compositeCenter.x, view.compositeCenter.y].join(','),        
         }, animSpeed, 'bounce', function() {
             view.all.animate({
                 'translation': dx+','+dy
             }, animSpeed, '<>')
         });
-        
+        // Clear the zoom data.
+        State.zoomed = null;
     } else if (dir !== "out") {
         view.all.animate({
             'translation': dx+','+dy
@@ -170,12 +192,7 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
                 'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),
             }, animSpeed, 'bounce')
         });
-        
-    }
-    
-    if (State.zoomed !== null) {
-        State.zoomed = null;
-    } else {
+        // Store the zoom data for next zoom.
         State.zoomed = {
             dx: dx,
             dy: dy,
@@ -206,21 +223,28 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed) {
     var txt = this.canvas.text(x + sideLength/2, y + sideLength/2, text);
     txt.attr({'fill': 'white',
         'font-size': '30',
-        'font-weight': 'bold',
-        'rotation': '-10'});
+        'font-weight': 'bold'
+    });
     all.push(txt);
     all.attr({'opacity': 0});
-    all.animate({'opacity': 1, 'rotation': '0', 'scale': '1.5,1.5', 'font-size': '50'}, animateSpeed, '>');
+    all.animate({
+        'opacity': 1,
+        'rotation': '0',
+        'scale': '1.5,1.5',
+        'font-size': '50'
+    }, animateSpeed, '>');
     
     var t = setTimeout(function(all) {
-        all.animate({'opacity': 0, 'scale': '1,1', 'rotation': '10', 'font-size': '30'},
-            animateSpeed,
-            '<',
-            function() {
-                // Delete nodes
-                txt.remove();
-                r.remove()
-            });
+        all.animate({
+            'opacity': 0,
+            'scale': '1,1',
+            'rotation': '10',
+            'font-size': '30'
+        }, animateSpeed, '<', function() {
+            // Delete nodes
+            txt.remove();
+            r.remove()
+        });
     }, persistTime, all);
 }
 
