@@ -8,7 +8,9 @@ var WINDOW_HEIGHT = $(window).height();
 // Current app state 
 var State = {
     photoset: [],
-    set_id: null
+    set_id: null,
+    current_frame_idx: 0,
+    zoomed: null
 };
 
 function PhotoView() {
@@ -131,19 +133,38 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
     var dy = this.compositeCenter.y - centerY;
     var scaleFactor = this.compositeDim.w / this.frameDim.w;
         
-    if (dir == 'out') {
+    if (State.zoomed) {
         scaleFactor = 1;
-        dx *= -1;
-        dy *= -1;
+        dx = -State.zoomed.dx;
+        dy = -State.zoomed.dy;
+        view.all.animate({
+            'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),        
+        }, 1000, function() {
+            view.all.animate({
+                'translation': dx+','+dy
+            }, 1000)
+        });
+        
+    } else {
+        view.all.animate({
+            'translation': dx+','+dy
+        }, 1000, function() {
+            view.all.animate({
+                'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),
+            }, 1000)
+        });
+        
     }
     
-    view.all.animate({
-        'translation': dx+','+dy
-    }, 1000, function() {
-        view.all.animate({
-            'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),
-        }, 1000)
-    });
+    if (State.zoomed !== null) {
+        State.zoomed = null;
+    } else {
+        State.zoomed = {
+            dx: dx,
+            dy: dy,
+            scaleFactor: scaleFactor
+        };
+    }
 }
 
 /**
@@ -241,7 +262,7 @@ CameraUtils.countdown = function(expected) {
 
 $(window).ready(function () {
     $('button#zoom-button').click(function(e) {
-       p.zoomFrame(0); 
+       p.zoomFrame(State.current_frame_idx);
     });
     $('button#start-button').click(function(e) {
         $.get('start_snap', null, function(data) {
