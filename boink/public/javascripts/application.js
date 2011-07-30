@@ -312,23 +312,23 @@ $(window).ready(function () {
             console.log("set_id is: "+data.set_id);
             console.log("timestamps are: "+data.timestamps);
             
+            p.modalMessage('Warming up...', 3000);
+            
             // Set global
             var timestamps = data.timestamps;
             var time_now = (new Date()).getTime();
-            var closest_ts = timestamps.pop();
-            var ts_delta = closest_ts - time_now - 4000;
-            
-            console.log('delta is:' + ts_delta);
 
             while(timestamps.length > 0) {
+                var closest_ts = timestamps.pop();
+                var ts_delta = closest_ts - time_now - 4000;
+                console.log('delta is:' + ts_delta);
+
                 console.log('next expected time to snap at is:' + closest_ts);
+                console.log('im going up at: ' + ts_delta);
                 // Start countdown
                 setTimeout(function(expect) {
                     CameraUtils.countdown(expect);
                 }, ts_delta, closest_ts);
-                closest_ts = timestamps.pop();
-                ts_delta = closest_ts - time_now - 4000;
-                console.log('delta is:' + ts_delta);
             }
         });
     });
