@@ -282,9 +282,6 @@ CameraUtils.countdown = function(expected) {
 }
 
 $(window).ready(function () {
-    $('button#zoom-button').click(function(e) {
-       p.zoomFrame(State.current_frame_idx);
-    });
     $('button#start-button').click(function(e) {
         $.get('start_snap', null, function(data) {
             // Temp logging
