@@ -5,8 +5,11 @@ var PHOTO_MARGIN = 50; // Margin for the composite photo per side
 var WINDOW_WIDTH = $(window).width();
 var WINDOW_HEIGHT = $(window).height();
 
-var currentPhotoSet = {};
-
+// Current app state 
+var State = {
+    photoset: [],
+    set_id: null
+};
 
 function PhotoView() {
     this.container = $('#viewport');
@@ -42,11 +45,11 @@ PhotoView.prototype.render = function() {
     this.frames.push(frame);
     
     frame = frame.clone();
-    frame.translate(0, frame_h + PHOTO_BORDER);
+    frame.translate(-(frame_w + PHOTO_BORDER), frame_h + PHOTO_BORDER);
     this.frames.push(frame);
     
     frame = frame.clone();
-    frame.translate(-(frame_w + PHOTO_BORDER), 0);
+    frame.translate(frame_w + PHOTO_BORDER, 0);
     this.frames.push(frame);
 }
 
@@ -59,16 +62,22 @@ PhotoView.prototype.updatePhotoSet = function(setId) {
        var images = data.images;
        for (var i in images) {
            // New photo
-           if (currentPhotoSet[i] === undefined) {
+           if (State.photoset[i] === undefined) {
                var image = images[i];
-               currentPhotoSet[i] = image;
+               State.photoset[i] = image;
                var oldframe = view.frames[i];
+
                // Draw new rect
                var img = view.canvas.image(image.url,
                     oldframe.attr('x'),
                     oldframe.attr('y'),
                     oldframe.attr('width'),
                     oldframe.attr('height'));
+                // delete black rect
+                oldframe.remove();
+                
+                // Store img svg obj in frames
+                view.frames[i] = img;
            }
        }
     });
@@ -102,7 +111,7 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed) {
     all.attr({'opacity': 0});
     all.animate({'opacity': 1, 'rotation': '0', 'scale': '1.5,1.5', 'font-size': '50'}, animateSpeed, '>');
     
-    setTimeout(function(all) {
+    var t = setTimeout(function(all) {
         all.animate({'opacity': 0, 'scale': '1,1', 'rotation': '10', 'font-size': '30'},
             animateSpeed,
             '<',
@@ -112,7 +121,6 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed) {
                 r.remove()
             });
     }, persistTime, all);
-
 }
 
 /**
