@@ -19,10 +19,16 @@ class BoothController < ApplicationController
     PHOTO_COUNT.times do |i|
       @response[:timestamps] << start_time + (PHOTO_DELAY * 1000 * i)
     end
+
+    @pset = PhotoSet.create
+
     # call call_rake to call script to take photos from here, passing in starting timestamp
-    # and delta so that the camera can start doing work
-    
-    call_rake('camera:snap', :filename => Rails.public_path + '/images', :interval_sec => PHOTO_DELAY, :frames => PHOTO_COUNT)
+    # and delta so that the camera can start doing work    
+    call_rake('camera:snap',
+      :filename => "#{Rails.public_path}/images/sets/#{@pset.id}/boink_%n.jpg",
+      :interval_sec => PHOTO_DELAY,
+      :num_frames => PHOTO_COUNT,
+      :timestamps => @response[:timestamps])
     
     render :json => @response
   end

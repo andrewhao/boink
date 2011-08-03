@@ -1,8 +1,6 @@
 class ApplicationController < ActionController::Base
   protect_from_forgery
-
   helper_method :call_rake
-
   private
   def call_rake(task, options = {})
     options[:rails_env] ||= Rails.env
