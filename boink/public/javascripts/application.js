@@ -107,9 +107,9 @@ PhotoView.prototype.render = function() {
 /**
  * Queries the server for updated photos
  */
-PhotoView.prototype.updatePhotoSet = function(setId) {
+PhotoView.prototype.updatePhotoSet = function() {
     var view = this;
-    $.get('photoset', {set_id: setId}, function(data) {
+    $.get('photoset', {set_id: State.set_id}, function(data) {
        var images = data.images;
        for (var i in images) {
            // New photo
@@ -333,6 +333,9 @@ $(window).ready(function () {
             // Temp logging
             console.log("set_id is: "+data.set_id);
             console.log("timestamps are: "+data.timestamps);
+            
+            // Set the current state
+            State.set_id = data.set_id;
             
             //p.modalMessage('Warming up...', 1000);
             

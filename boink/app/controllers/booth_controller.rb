@@ -3,7 +3,7 @@ require 'json'
 class BoothController < ApplicationController
   
   PHOTO_COUNT = 4 # number of photos that will be taken
-  PHOTO_PREDELAY = 5 # delay before first photo is taken
+  PHOTO_PREDELAY = 4 # delay before first photo is taken
   PHOTO_DELAY = 10 # delay between photos being taken
   
   def show
@@ -13,7 +13,6 @@ class BoothController < ApplicationController
   # Returns a set of timestamps the camera will click at.
   def start_snap
     @response = {}
-    @response[:set_id] = 0
     @response[:timestamps] = []
     start_time = (Time.now.to_i + PHOTO_PREDELAY) * 1000
     PHOTO_COUNT.times do |i|
@@ -21,11 +20,13 @@ class BoothController < ApplicationController
     end
 
     @pset = PhotoSet.create
+    
+    @response[:set_id] = @pset.id
 
     # call call_rake to call script to take photos from here, passing in starting timestamp
     # and delta so that the camera can start doing work    
     call_rake('camera:snap',
-      :filename => "#{Rails.public_path}/images/sets/#{@pset.id}/boink_%n.jpg",
+      :filename => "#{@pset.get_folder_path}/boink_%n.jpg",
       :interval_sec => PHOTO_DELAY,
       :num_frames => PHOTO_COUNT,
       :timestamps => @response[:timestamps])
@@ -37,9 +38,8 @@ class BoothController < ApplicationController
   #--
   # FIXME Currently returning hardcoded mock data.
   def photoset
-#    photo_set = PhotoSet.find params[:set_id].to_i
-#    photo_set.paths
-
+    @photoset = PhotoSet.find params[:set_id].to_i
+    
     # MOCK/andrewhao
     @response = {}
     @response[:images] = [
