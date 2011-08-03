@@ -3,5 +3,13 @@
 
 require File.expand_path('../config/application', __FILE__)
 require 'rake'
+require 'fileutils'
 
 Boink::Application.load_tasks
+namespace :camera do 
+  desc 'Execute a camera snap.'
+  task :snap, :filename, :interval_sec, :num_frames do |t, args|
+    args.with_defaults(:filename => 'boink_%n.jpg', :interval_sec => 0, :num_frames => 1)
+    sh "gphoto2 --capture-image-and-download --filename \"#{args[:filename]}\" --force-overwrite --interval #{args[:interval_sec]} --frames #{args[:num_frames]}"
+  end
+end
