@@ -1,6 +1,7 @@
 require 'json'
 
 class BoothController < ApplicationController
+  
   PHOTO_COUNT = 4 # number of photos that will be taken
   PHOTO_PREDELAY = 5 # delay before first photo is taken
   PHOTO_DELAY = 10 # delay between photos being taken
@@ -20,6 +21,9 @@ class BoothController < ApplicationController
     end
     # call call_rake to call script to take photos from here, passing in starting timestamp
     # and delta so that the camera can start doing work
+    
+    call_rake('camera:snap', :filename => Rails.public_path + '/images', :interval_sec => PHOTO_DELAY, :frames => PHOTO_COUNT)
+    
     render :json => @response
   end
 

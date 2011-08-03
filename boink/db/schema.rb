@@ -10,7 +10,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20110725060930) do
+ActiveRecord::Schema.define(:version => 20110803180802) do
 
   create_table "photo_sets", :force => true do |t|
     t.string   "paths"
