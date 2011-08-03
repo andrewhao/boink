@@ -169,7 +169,7 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
     var dy = this.compositeCenter.y - centerY;
     var scaleFactor = this.compositeDim.w / this.frameDim.w;
     
-    console.log('dx,dy: ' + dx + "," + dy);
+    //console.log('dx,dy: ' + dx + "," + dy);
         
     if (dir === "out" && State.zoomed) {
         scaleFactor = 1;
@@ -199,6 +199,16 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
             scaleFactor: scaleFactor
         };
     }
+}
+
+PhotoView.prototype.flashEffect = function(duration) {
+    if (!duration) { duration = 200; }
+    var rect = this.canvas.rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    rect.attr({'fill': 'white', 'opacity': 0});
+    rect.animate({'opacity': 1}, duration, ">", function() {
+        rect.animate({'opacity': 0}, duration, "<");
+    })
+    rect.remove();
 }
 
 /**
@@ -238,7 +248,6 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed) {
         all.animate({
             'opacity': 0,
             'scale': '1,1',
-            'rotation': '10',
             'font-size': '30'
         }, animateSpeed, '<', function() {
             // Delete nodes
@@ -259,6 +268,7 @@ function CameraUtils() {};
 CameraUtils.snap = function(expected_time) {
     var now = (new Date()).getTime();
     p.modalMessage('Cheese!');
+    p.flashEffect();
     console.log('snap at ' + now);
     console.log('delta from expected: ' + (expected_time - now));
     p.updatePhotoSet();
@@ -288,14 +298,14 @@ CameraUtils.countdown = function(expected) {
     console.log('countdown with expected time of: '+expected);
     // Zoom in
     p.zoomFrame(State.current_frame_idx, 'in');
-    p.modalMessage('Ready?', 1000);
+    p.modalMessage('Ready?', 500);
 
     var counter = 3;
     var countdownTimer = setInterval(function() {
         console.log(counter);
         p.modalMessage(counter);
         if (counter == 1) {
-            console.log('expected to snap: ' + expected);
+            console.log('Expected to snap at: ' + expected);
             clearInterval(countdownTimer);
             setTimeout(function() {
                 CameraUtils.snap(expected);
@@ -306,13 +316,25 @@ CameraUtils.countdown = function(expected) {
 }
 
 $(window).ready(function () {
-    $('button#start-button').click(function(e) {
+    
+    var startButton = $('button#start-button');
+    var buttonX = (WINDOW_WIDTH - startButton.outerWidth())/2;
+    var buttonY = (WINDOW_HEIGHT - startButton.outerHeight())/2;
+    
+    // Position the start button in the center
+    startButton.css({'top': buttonY, 'left': buttonX});
+    
+    // Click handler for the start button.
+    startButton.click(function(e) {
+        var button = $(e.currentTarget);
+        button.fadeOut(1000);
+        
         $.get('start_snap', null, function(data) {
             // Temp logging
             console.log("set_id is: "+data.set_id);
             console.log("timestamps are: "+data.timestamps);
             
-            p.modalMessage('Warming up...', 3000);
+            //p.modalMessage('Warming up...', 1000);
             
             // Set global
             var timestamps = data.timestamps;

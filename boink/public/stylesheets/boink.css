@@ -20,15 +20,10 @@ body {
  * http://www.zurb.com/article/266/super-awesome-buttons-with-css3-and-rgba
  */
 button.awesome {
-    margin: 1em;
     z-index: 2;
-    position: absolute;     
+    position: absolute;
 }
 button#start-button {
-    top: 0;
-}
-button#zoom-button {
-    top: 2em;
 }
 
 .awesome, .awesome:visited {
