@@ -119,10 +119,10 @@ PhotoView.prototype.updatePhotoSet = function() {
                var imgEl = view.images[i];
 
                imgEl.attr({'src': image.url});
+               console.log('A new photo found at: ' + image.url);
                imgEl.show();
            }
        }
-       //view.all.animate({'rotation': '10'}, 100, function() {view.all.animate({'rotation': '-10'}, 100)});
        
        setTimeout(function() {
            // Zoom out

@@ -35,20 +35,24 @@ class BoothController < ApplicationController
   end
 
   # Return the images available in the requested photoset.
-  #--
-  # FIXME Currently returning hardcoded mock data.
   def photoset
     @photoset = PhotoSet.find params[:set_id].to_i
     
-    # MOCK/andrewhao
+    # Hackish: hit the filesystem and return a list of files.    
     @response = {}
-    @response[:images] = [
-      {:index => 0, :url => '/images/photos/1.jpg'},
-#      {:index => 1, :url => '/images/photos/2.jpg'},
-#      {:index => 2, :url => '/images/photos/3.jpg'},
-#      {:index => 3, :url => '/images/photos/4.jpg'},
-    ]
-    render :json => @response
+    @response[:images] = {}
+    
+    # Spin wait (ugh) until something shows up.
+    while not File.directory?(@photoset.get_folder_path)
+      sleep(1)
+    end
+    
+    pset_dir = Dir.entries(@photoset.get_folder_path)
+    pset_dir.reject! { |f| ['.', '..'].include?(f) }
+    pset_dir.each_with_index do |f, idx|
+        @response[:images][idx] = {:url => "#{@photoset.get_folder_public_path}/#{f}"}
+    end
 
+    render :json => @response
   end
 end
