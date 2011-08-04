@@ -109,27 +109,34 @@ PhotoView.prototype.render = function() {
  */
 PhotoView.prototype.updatePhotoSet = function() {
     var view = this;
-    $.get('photoset', {set_id: State.set_id}, function(data) {
-       var images = data.images;
-       for (var i in images) {
-           // New photo
-           if (State.photoset[i] === undefined) {
-               var image = images[i];
-               State.photoset[i] = image;
-               var imgEl = view.images[i];
+    
+    // Poll the server every second to check if the image has come in.
+    var updatePoller = setInterval(function() {
+        $.get('photoset', {set_id: State.set_id}, function(data) {
+            console.log('polling from poller id ' + updatePoller)
+           var images = data.images;
+           for (var i in images) {
+               // New photo
+               if (State.photoset[i] === undefined) {
+                   var image = images[i];
+                   State.photoset[i] = image;
+                   var imgEl = view.images[i];
 
-               imgEl.attr({'src': image.url});
-               console.log('A new photo found at: ' + image.url);
-               imgEl.show();
+                   imgEl.attr({'src': image.url});
+                   console.log('A new photo found at: ' + image.url);
+                   imgEl.show();
+                   
+                   // We've found the photo, now zoom out
+                   p.zoomFrame(State.current_frame_idx, 'out');
+                   State.current_frame_idx = (State.current_frame_idx + 1) % 4
+                   
+                   console.log('im stopping the poller at '+updatePoller);
+                   // Cancel the timer
+                   clearInterval(updatePoller);
+               }
            }
-       }
-       
-       setTimeout(function() {
-           // Zoom out
-           p.zoomFrame(State.current_frame_idx, 'out');
-           State.current_frame_idx = (State.current_frame_idx + 1) % 4
-       }, 2000);
-    });
+        });
+    }, 1000);
 }
 
 PhotoView.prototype.loadImage = function(idx, url) {
