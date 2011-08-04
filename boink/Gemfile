@@ -11,6 +11,10 @@ gem 'json'
 # Use jQuery
 gem 'jquery-rails', '>= 1.0.12'
 
+# DJ: delayed_job
+# https://github.com/collectiveidea/delayed_job
+gem 'delayed_job'
+
 # Use unicorn as the web server
 # gem 'unicorn'
 

@@ -15,7 +15,7 @@ class PhotoSet < ActiveRecord::Base
   
   # Returns a URL-relative path to the set folder.
   # Note no trailing slash.
-  def get_folder_public_path
+  def get_url_folder_path
     return "/images/sets/#{self.id}"
   end
 end

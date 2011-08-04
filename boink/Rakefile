@@ -9,11 +9,9 @@ Boink::Application.load_tasks
 namespace :camera do 
   desc 'Execute a camera snap.'
   task :snap do |t, args|
-    
     filename = ENV['FILENAME'] || 'boink_%n.jpg'
     interval_sec = ENV['INTERVAL_SEC'] || 0
     num_frames = ENV['NUM_FRAMES'] || 1
-    
     sh "gphoto2 --capture-image-and-download --filename \"#{filename}\" --force-overwrite --interval #{interval_sec} --frames #{num_frames}"
   end
 end
