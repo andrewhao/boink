@@ -126,13 +126,22 @@ PhotoView.prototype.updatePhotoSet = function() {
                    console.log('A new photo found at: ' + image.url);
                    imgEl.show();
                    
-                   // We've found the photo, now zoom out
-                   p.zoomFrame(State.current_frame_idx, 'out');
-                   State.current_frame_idx = (State.current_frame_idx + 1) % 4
+                   // Do some cleanup actions
                    
-                   console.log('im stopping the poller at '+updatePoller);
-                   // Cancel the timer
+                   // We've found and revealed the photo, now zoom out
+                   p.zoomFrame(State.current_frame_idx, 'out');
+
+                   // Cancel the polling timer
                    clearInterval(updatePoller);
+                   
+                   // If this is the last photo, then show overlay and begin reset.
+                   if (State.current_frame_idx == 3) {
+                       console.log('Final frame reached, do cleanup');
+                       $('body').trigger('finalize');
+                   }
+
+                   // Finally, reset the frame index state.
+                   State.current_frame_idx = (State.current_frame_idx + 1) % 4
                }
            }
         });
@@ -364,9 +373,16 @@ $(window).ready(function () {
             }
         });
     });
+    
+    $('body').bind('finalize', function() {
+        // TODO
+       console.log('Finalizing the view.');
+       console.log('Apply an overlay.');
+       console.log('Animate out');
+       console.log('Delete elements, start again');
+    });
 
     p = new PhotoView();
     p.render();
-
 });
 

@@ -3,8 +3,19 @@ require 'json'
 class PhotoSet < ActiveRecord::Base
   # Query for a JPEG image reference in the model.
   def get_image_path(index)
-    path_obj = JSON.parse(self.paths)
-    return path_obj[index.to_s]
+    return (self.paths) ? JSON.parse(self.paths)[index.to_s] : nil
+  end
+  
+  # Return a deJSONified Ruby hash.
+  def get_paths
+    return (self.paths) ? JSON.parse(self.paths) : {}
+  end
+  
+  def set_image_path(index, path)
+    path_dict = (self.paths) ? JSON.parse(self.paths) : {}
+    path_dict[index] = path;
+    self.paths = JSON.generate(path_dict)
+    self.save
   end
 
   # Return the absolute filesystem path to the folder containing images for this set.
