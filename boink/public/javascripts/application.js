@@ -100,8 +100,12 @@ PhotoView.prototype.render = function() {
     this.all.push(frame);
     this.all.push(img);
     
-    // Hide all images.
-    this.images.hide();
+    // Draw the PNG logo overlay.
+    this.addOverlay();
+    
+    // Hide everything and move out of sight.
+    this.all.hide();
+    this.all.translate(-WINDOW_WIDTH, 0);
 }
 
 /**
@@ -123,31 +127,52 @@ PhotoView.prototype.updatePhotoSet = function() {
                    var imgEl = view.images[i];
                    var frameEl = view.frames[i];
 
-                   imgEl.attr({'src': image.url});
-                   console.log('A new photo found at: ' + image.url);
+                   imgEl.attr({'src': image.url, 'opacity': 0});
                    imgEl.show();
-                   frameEl.hide();
+                   console.log('A new photo found at: ' + image.url);
+                   imgEl.animate({'opacity': 1}, 200, function() {
+                      frameEl.hide();
+                   });
+
                    
                    // Do some cleanup actions
                    
                    // We've found and revealed the photo, now zoom out
-                   p.zoomFrame(State.current_frame_idx, 'out');
+                   p.zoomFrame(State.current_frame_idx, 'out', function() {
+                       // If this is the last photo, then show overlay and begin reset.
+                       if (State.current_frame_idx == 3) {
+                           console.log('Final frame reached, do cleanup');
+                           $('body').trigger('finalize');
+                       }
+                       // Then reset the frame index state.
+                       State.current_frame_idx = (State.current_frame_idx + 1) % 4                       
+                   });
 
                    // Cancel the polling timer
                    clearInterval(updatePoller);
-                   
-                   // If this is the last photo, then show overlay and begin reset.
-                   if (State.current_frame_idx == 3) {
-                       console.log('Final frame reached, do cleanup');
-                       $('body').trigger('finalize');
-                   }
-
-                   // Finally, reset the frame index state.
-                   State.current_frame_idx = (State.current_frame_idx + 1) % 4
                }
            }
         });
     }, 1000);
+}
+
+/**
+ * For in: assume the view has been rendered and reset to initial state and moved out of sight.
+ * Slide in the composite image.
+ * For out: assume the composite image is centered. Move out of sight and hide.
+ */
+PhotoView.prototype.animate = function(dir, cb) {
+    if (dir === 'in') {
+        this.all.show();
+        this.images.hide();
+        this.all.animate({
+            'translation': WINDOW_WIDTH+",0"
+            }, 1000, "<>", cb);        
+    } else if (dir === 'out') {
+        this.all.animate({
+            'translation': WINDOW_WIDTH+",0"
+        }, 1000, "<>", cb);
+    }
 }
 
 PhotoView.prototype.loadImage = function(idx, url) {
@@ -165,10 +190,12 @@ PhotoView.prototype.loadImage = function(idx, url) {
  * frame: 0 (upper left), 1 (upper-right), 2 (lower-left), 3 (lower-right)
  * @param dir 'in' or 'out'
  *   Zoom in or out
+ * @param onfinish
+ *   Callback executed when the animation is finished.
  *
  * Depends on the presence of the State.zoomed object to store zoom info.
  */
-PhotoView.prototype.zoomFrame = function(idx, dir) {
+PhotoView.prototype.zoomFrame = function(idx, dir, onfinish) {
     var view = this;
     var composite = this.all[idx];
 
@@ -187,7 +214,7 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
     var dy = this.compositeCenter.y - centerY;
     var scaleFactor = this.compositeDim.w / this.frameDim.w;
     
-    //console.log('dx,dy: ' + dx + "," + dy);
+    console.log('dx,dy: ' + dx + "," + dy);
         
     if (dir === "out" && State.zoomed) {
         scaleFactor = 1;
@@ -198,7 +225,7 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
         }, animSpeed, 'bounce', function() {
             view.all.animate({
                 'translation': dx+','+dy
-            }, animSpeed, '<>')
+            }, animSpeed, '<>', onfinish)
         });
         // Clear the zoom data.
         State.zoomed = null;
@@ -208,7 +235,7 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
         }, animSpeed, '<>', function() {
             view.all.animate({
                 'scale': [scaleFactor, scaleFactor, view.compositeCenter.x, view.compositeCenter.y].join(','),
-            }, animSpeed, 'bounce')
+            }, animSpeed, 'bounce', onfinish)
         });
         // Store the zoom data for next zoom.
         State.zoomed = {
@@ -217,6 +244,31 @@ PhotoView.prototype.zoomFrame = function(idx, dir) {
             scaleFactor: scaleFactor
         };
     }
+}
+
+/**
+ * Reset visibility, location of composite image for next round.
+ */
+PhotoView.prototype.next = function() {
+    this.resetState();
+    this.modalMessage('Next!');
+    this.all.hide();
+    this.all.translate(-WINDOW_WIDTH * 2, 0);
+    this.animate('in', function() {
+        $('#start-button').fadeIn();
+    });
+}
+
+/**
+ * Resets the state variables.
+ */
+PhotoView.prototype.resetState = function () {
+    State = {
+        photoset: [],
+        set_id: null,
+        current_frame_idx: 0,
+        zoomed: null
+    };
 }
 
 PhotoView.prototype.flashEffect = function(duration) {
@@ -232,7 +284,7 @@ PhotoView.prototype.flashEffect = function(duration) {
 /**
  * Draws a modal with some text.
  */
-PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed) {
+PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed, cb) {
     if (animateSpeed === undefined) { var animateSpeed = 200; }
     if (persistTime === undefined) { var persistTime = 500; }
 
@@ -270,9 +322,23 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed) {
         }, animateSpeed, '<', function() {
             // Delete nodes
             txt.remove();
-            r.remove()
+            r.remove();
+            if (cb) cb();
         });
     }, persistTime, all);
+}
+
+/**
+ * Applies the final image overlay to the composite image.
+ * This will usually contain the wedding logo: 24-bit transparent PNG
+ */
+PhotoView.prototype.addOverlay = function(animate) {
+    var i = this.canvas.image('/images/overlay.png', this.compositeOrigin.x, this.compositeOrigin.y, this.compositeDim.w, this.compositeDim.h);
+    if (animate) {
+        i.attr({'opacity':0});
+        i.animate({'opacity':1}, 1000);
+    }
+    this.all.push(i);
 }
 
 /**
@@ -339,6 +405,8 @@ $(window).ready(function () {
     var buttonX = (WINDOW_WIDTH - startButton.outerWidth())/2;
     var buttonY = (WINDOW_HEIGHT - startButton.outerHeight())/2;
     
+    startButton.hide();
+    
     // Position the start button in the center
     startButton.css({'top': buttonY, 'left': buttonX});
     
@@ -354,8 +422,6 @@ $(window).ready(function () {
             
             // Set the current state
             State.set_id = data.set_id;
-            
-            //p.modalMessage('Warming up...', 1000);
             
             // Set global
             var timestamps = data.timestamps;
@@ -378,13 +444,14 @@ $(window).ready(function () {
     
     $('body').bind('finalize', function() {
         // TODO
-       console.log('Finalizing the view.');
-       console.log('Apply an overlay.');
-       console.log('Animate out');
-       console.log('Delete elements, start again');
+       p.animate('out');
+       p.modalMessage('Now printing...', 3000, 200, function() {p.next()});
+       //p.next();
     });
-
     p = new PhotoView();
     p.render();
+    p.animate('in', function() {
+        startButton.fadeIn();
+    });
 });
 
