@@ -130,24 +130,24 @@ PhotoView.prototype.updatePhotoSet = function() {
                    imgEl.attr({'src': image.url, 'opacity': 0});
                    imgEl.show();
                    console.log('A new photo found at: ' + image.url);
-                   imgEl.animate({'opacity': 1}, 200, function() {
-                      frameEl.hide();
-                   });
 
-                   
+                   var afterShowPhoto = function () {
+                       // We've found and revealed the photo, now hide the old black rect and zoom out
+                       frameEl.hide();
+                       p.zoomFrame(State.current_frame_idx, 'out', function() {
+                           // If this is the last photo, then show overlay and begin reset.
+                           if (State.current_frame_idx == 3) {
+                               console.log('Final frame reached, do cleanup');
+                               $('body').trigger('finalize');
+                           }
+                           // Then reset the frame index state.
+                           State.current_frame_idx = (State.current_frame_idx + 1) % 4                       
+                       });                       
+                   }
+
+                   imgEl.animate({'opacity': 1}, 200, afterShowPhoto);
+
                    // Do some cleanup actions
-                   
-                   // We've found and revealed the photo, now zoom out
-                   p.zoomFrame(State.current_frame_idx, 'out', function() {
-                       // If this is the last photo, then show overlay and begin reset.
-                       if (State.current_frame_idx == 3) {
-                           console.log('Final frame reached, do cleanup');
-                           $('body').trigger('finalize');
-                       }
-                       // Then reset the frame index state.
-                       State.current_frame_idx = (State.current_frame_idx + 1) % 4                       
-                   });
-
                    // Cancel the polling timer
                    clearInterval(updatePoller);
                }
@@ -214,7 +214,7 @@ PhotoView.prototype.zoomFrame = function(idx, dir, onfinish) {
     var dy = this.compositeCenter.y - centerY;
     var scaleFactor = this.compositeDim.w / this.frameDim.w;
     
-    console.log('dx,dy: ' + dx + "," + dy);
+    console.log('dx, dy: ' + dx + "," + dy);
         
     if (dir === "out" && State.zoomed) {
         scaleFactor = 1;
