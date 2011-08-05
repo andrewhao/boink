@@ -15,6 +15,9 @@ gem 'jquery-rails', '>= 1.0.12'
 # https://github.com/collectiveidea/delayed_job
 gem 'delayed_job'
 
+# RMagick2
+gem 'rmagick'
+
 # Use unicorn as the web server
 # gem 'unicorn'
 
