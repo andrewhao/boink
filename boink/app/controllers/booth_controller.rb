@@ -4,7 +4,7 @@ class BoothController < ApplicationController
   
   PHOTO_COUNT = 4 # number of photos that will be taken
   PHOTO_DELAY = 12 # delay between photos being taken
-      CAMERA_INIT_LAG = 8 # delay between calling gphoto2 and the actual camera shutter snap. this value will have to be jiggered, YMMV.
+  CAMERA_INIT_LAG = 5 # delay between calling gphoto2 and the actual camera shutter snap. this value will have to be jiggered, YMMV.
   
   def show
   end
@@ -40,19 +40,9 @@ class BoothController < ApplicationController
     @response = {}
     @response[:images] = {}
     
-    # Hackish: hit the filesystem and return a list of files.
-    # TODO: Should make this hit the DB.
-    
+    # Return the current list of images at this photoset.
     @photoset.get_paths.each do |idx, path|
       @response[:images][idx] = {:url => path}
-    end
-    
-    if File.directory?(@photoset.get_folder_path)    
-      pset_dir = Dir.entries(@photoset.get_folder_path)
-      pset_dir.reject! { |f| ['.', '..'].include?(f) }
-      pset_dir.each_with_index do |f, idx|
-          
-      end
     end
 
     render :json => @response

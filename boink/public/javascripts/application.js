@@ -116,15 +116,17 @@ PhotoView.prototype.updatePhotoSet = function() {
             console.log('polling from poller id ' + updatePoller)
            var images = data.images;
            for (var i in images) {
-               // New photo
+               // New photo means we'll construct an image element
                if (State.photoset[i] === undefined) {
                    var image = images[i];
                    State.photoset[i] = image;
                    var imgEl = view.images[i];
+                   var frameEl = view.frames[i];
 
                    imgEl.attr({'src': image.url});
                    console.log('A new photo found at: ' + image.url);
                    imgEl.show();
+                   frameEl.hide();
                    
                    // Do some cleanup actions
                    
