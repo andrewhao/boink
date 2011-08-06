@@ -40,6 +40,7 @@ class PhotoSet < ActiveRecord::Base
     return "#{Rails.public_path}/images/overlay.png"
   end
   
+  # Takes the photos in this PhotoSet and composites them with RMagick
   def composite_photos
     comp = Image.new(IMAGE_WIDTH * 2 + IMAGE_PADDING, IMAGE_HEIGHT * 2 + IMAGE_PADDING) { self.background_color = "white" }
     
@@ -55,10 +56,16 @@ class PhotoSet < ActiveRecord::Base
     comp = comp.composite(bl_photo, 0, IMAGE_HEIGHT + IMAGE_PADDING, OverCompositeOp)
     comp = comp.composite(br_photo, IMAGE_WIDTH + IMAGE_PADDING, IMAGE_HEIGHT + IMAGE_PADDING, OverCompositeOp)
     comp = comp.composite(overlay, ((comp.columns - overlay.columns)/2).round, ((comp.rows - overlay.rows)/2).round, OverCompositeOp)
-    comp.write(tmp_path + "photos/gen.jpg")    
+    comp.write(get_folder_path + "photos/gen.jpg")    
+  end  
+  
+  def print
+    photo_path = get_folder_path + "photos/gen.jpg"
+    sh "lpr #{photo_path}"
+    printed = true
+    save
   end
   
-  # Takes the photos in this PhotoSet and composites them with RMagick
   def self.composite_test
     tmp_path = "#{Rails.public_path}/images/"
     comp = Image.new(IMAGE_WIDTH * 2 + IMAGE_PADDING, IMAGE_HEIGHT * 2 + IMAGE_PADDING) { self.background_color = "white" }
