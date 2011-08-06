@@ -12,12 +12,6 @@ class CameraSnapJob < Struct.new(:photoset, :idx)
     image_folder = photoset.get_folder_path
     image_name = "boink_#{idx}.jpg"
     
-    # Kill PTPCamera process because that eats up USB access on OS X.
-    begin
-      `killall PTPCamera`
-    rescue Exception => e
-    end
-    
     #sh "gphoto2 --capture-image-and-download --filename #{image_path} --force-overwrite"
     `mkdir -p #{image_folder}`
     CAMERA.capture.save({:to_folder => image_folder, :new_name => image_name}).delete
