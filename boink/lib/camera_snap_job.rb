@@ -29,6 +29,7 @@ class CameraSnapJob < Struct.new(:photoset, :idx)
     # Store the filename in the photoset object.
     photoset.set_image_path(idx, url_image_path)
     Rails.logger.debug "AHAO Saved new image into PhotoSet path: #{photoset.get_paths}"
+    photoset.composite_photos
   end
   
   def failure(job)

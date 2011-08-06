@@ -40,10 +40,28 @@ class PhotoSet < ActiveRecord::Base
     return "#{Rails.public_path}/images/overlay.png"
   end
   
+  def composite_photos
+    comp = Image.new(IMAGE_WIDTH * 2 + IMAGE_PADDING, IMAGE_HEIGHT * 2 + IMAGE_PADDING) { self.background_color = "white" }
+    
+    tl_photo = ImageList.new(get_folder_path + "boink_1.jpg").resize_to_fill(IMAGE_WIDTH, IMAGE_HEIGHT)
+    tr_photo = ImageList.new(get_folder_path + "boink_2.jpg").resize_to_fill(IMAGE_WIDTH, IMAGE_HEIGHT)
+    bl_photo = ImageList.new(get_folder_path + "boink_3.jpg").resize_to_fill(IMAGE_WIDTH, IMAGE_HEIGHT)
+    br_photo = ImageList.new(get_folder_path + "boink_4.jpg").resize_to_fill(IMAGE_WIDTH, IMAGE_HEIGHT)
+    
+    overlay = ImageList.new(PhotoSet.get_overlay_path)
+    
+    comp = comp.composite(tl_photo, 0, 0, OverCompositeOp)
+    comp = comp.composite(tr_photo, IMAGE_WIDTH + IMAGE_PADDING, 0, OverCompositeOp)
+    comp = comp.composite(bl_photo, 0, IMAGE_HEIGHT + IMAGE_PADDING, OverCompositeOp)
+    comp = comp.composite(br_photo, IMAGE_WIDTH + IMAGE_PADDING, IMAGE_HEIGHT + IMAGE_PADDING, OverCompositeOp)
+    comp = comp.composite(overlay, ((comp.columns - overlay.columns)/2).round, ((comp.rows - overlay.rows)/2).round, OverCompositeOp)
+    comp.write(tmp_path + "photos/gen.jpg")    
+  end
+  
   # Takes the photos in this PhotoSet and composites them with RMagick
-  def self.composite_photos
+  def self.composite_test
     tmp_path = "#{Rails.public_path}/images/"
-    comp = Image.new(IMAGE_WIDTH * 2 + IMAGE_PADDING * 3, IMAGE_HEIGHT * 2 + IMAGE_PADDING * 3) { self.background_color = "white" }
+    comp = Image.new(IMAGE_WIDTH * 2 + IMAGE_PADDING, IMAGE_HEIGHT * 2 + IMAGE_PADDING) { self.background_color = "white" }
     
     tl_photo = ImageList.new(tmp_path + "photos/1.jpg").resize_to_fill(IMAGE_WIDTH, IMAGE_HEIGHT)
     tr_photo = ImageList.new(tmp_path + "photos/2.jpg").resize_to_fill(IMAGE_WIDTH, IMAGE_HEIGHT)
@@ -52,10 +70,10 @@ class PhotoSet < ActiveRecord::Base
     
     overlay = ImageList.new(tmp_path + "overlay.png")
     
-    comp = comp.composite(tl_photo, IMAGE_PADDING, IMAGE_PADDING, OverCompositeOp)
-    comp = comp.composite(tr_photo, IMAGE_WIDTH + IMAGE_PADDING * 2, IMAGE_PADDING, OverCompositeOp)
-    comp = comp.composite(bl_photo, IMAGE_PADDING, IMAGE_HEIGHT + IMAGE_PADDING * 2, OverCompositeOp)
-    comp = comp.composite(br_photo, IMAGE_WIDTH + IMAGE_PADDING * 2, IMAGE_HEIGHT + IMAGE_PADDING * 2, OverCompositeOp)
+    comp = comp.composite(tl_photo, 0, 0, OverCompositeOp)
+    comp = comp.composite(tr_photo, IMAGE_WIDTH + IMAGE_PADDING, 0, OverCompositeOp)
+    comp = comp.composite(bl_photo, 0, IMAGE_HEIGHT + IMAGE_PADDING, OverCompositeOp)
+    comp = comp.composite(br_photo, IMAGE_WIDTH + IMAGE_PADDING, IMAGE_HEIGHT + IMAGE_PADDING, OverCompositeOp)
     comp = comp.composite(overlay, ((comp.columns - overlay.columns)/2).round, ((comp.rows - overlay.rows)/2).round, OverCompositeOp)
     comp.write(tmp_path + "photos/gen.jpg")
   end
