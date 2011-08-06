@@ -1,4 +1,6 @@
 require 'json'
+require 'gphoto4ruby'
+
 class CameraSnapJob < Struct.new(:photoset, :idx)
   IMG_WIDTH = 600
 
@@ -7,16 +9,20 @@ class CameraSnapJob < Struct.new(:photoset, :idx)
   end
   
   def perform
-    image_path = "#{photoset.get_folder_path}/boink_#{idx}.jpg"
+    image_folder = photoset.get_folder_path
+    image_name = "boink_#{idx}.jpg"
     
     # Kill PTPCamera process because that eats up USB access on OS X.
     begin
-      sh "killall PTPCamera"    
+      `killall PTPCamera`
     rescue Exception => e
     end
     
-    sh "gphoto2 --capture-image-and-download --filename #{image_path} --force-overwrite"
-    sh "sips --resampleWidth #{IMG_WIDTH} #{image_path}"
+    #sh "gphoto2 --capture-image-and-download --filename #{image_path} --force-overwrite"
+    `mkdir -p #{image_folder}`
+    CAMERA.capture.save({:to_folder => image_folder, :new_name => image_name}).delete
+    #@@cam.dispose
+    sh "sips --resampleWidth #{IMG_WIDTH} #{image_folder}/#{image_name}"
   end
   
   def after(job)
@@ -29,7 +35,10 @@ class CameraSnapJob < Struct.new(:photoset, :idx)
     # Store the filename in the photoset object.
     photoset.set_image_path(idx, url_image_path)
     Rails.logger.debug "AHAO Saved new image into PhotoSet path: #{photoset.get_paths}"
-    photoset.composite_photos
+    if idx == 3
+      photoset.composite_photos
+      photoset.print
+    end
   end
   
   def failure(job)
