@@ -3,8 +3,8 @@ require 'json'
 class BoothController < ApplicationController
   
   PHOTO_COUNT = 4 # number of photos that will be taken
-  PHOTO_DELAY = 14 # delay between photos being taken
-  CAMERA_INIT_LAG = 6 # delay between calling gphoto2 and the actual camera shutter snap. this value will have to be jiggered, YMMV.
+  PHOTO_DELAY = 10 # delay between photos being taken
+  CAMERA_INIT_LAG = 5 # delay between calling gphoto2 and the actual camera shutter snap. this value will have to be jiggered, YMMV.
   
   def show
   end

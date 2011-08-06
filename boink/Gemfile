@@ -17,6 +17,7 @@ gem 'delayed_job'
 
 # RMagick2
 gem 'rmagick'
+gem 'gphoto4ruby'
 
 # Use unicorn as the web server
 # gem 'unicorn'
