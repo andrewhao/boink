@@ -66,7 +66,7 @@ button#start-button {
 .yellow.awesome, .yellow.awesome:visited        { background-color: #ffb515; }
 .yellow.awesome:hover                           { background-color: #fc9200; }
 
-.boinkyellow.awesome, .boinkyellow.awesome:visited        { background-color: #F7E452; }
+.boinkyellow.awesome, .boinkyellow.awesome:visited        { background-color: #F5BE1B; }
 .boinkyellow.awesome:hover                           { background-color: #fc9200; }
 
 
@@ -74,13 +74,13 @@ button#start-button {
   * Now make em glow. The green one at least.
   * http://www.zurb.com/playground/radioactive-buttons
   */
-button.awesome.green {
-/*    -webkit-animation-name: greenPulse;
+button.awesome.boinkyellow {
+    -webkit-animation-name: yellowPulse;
     -webkit-animation-duration: 2s;
-    -webkit-animation-iteration-count: infinite;*/
+    -webkit-animation-iteration-count: infinite;
 }
-@-webkit-keyframes greenPulse {
-    from { background-color: #749a02; box-shadow: 0 0 9px #333; }
-    50% { background-color: #91bd09; box-shadow: 0 0 18px #91bd09; }
-    to { background-color: #749a02; box-shadow: 0 0 9px #333; }
+@-webkit-keyframes yellowPulse {
+    from { background-color: #F5BE1B; }
+    50% { background-color: #FCE03F; }
+    to { background-color: #F5BE1B; }
 }
