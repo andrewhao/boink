@@ -1,6 +1,9 @@
 require 'json'
-require 'gphoto4ruby'
 
+##
+# Takes a picture
+# @param photoset Photoset instance that this picture will belong to.
+# @param idx Index of photo
 class CameraSnapJob < Struct.new(:photoset, :idx)
   IMG_WIDTH = 600
 
@@ -11,8 +14,7 @@ class CameraSnapJob < Struct.new(:photoset, :idx)
   def perform
     image_folder = photoset.get_folder_path
     image_name = "boink_#{idx}.jpg"
-    
-    #sh "gphoto2 --capture-image-and-download --filename #{image_path} --force-overwrite"
+
     `mkdir -p #{image_folder}`
     CAMERA.capture.save({:to_folder => image_folder, :new_name => image_name}).delete
     #@@cam.dispose
@@ -40,10 +42,3 @@ class CameraSnapJob < Struct.new(:photoset, :idx)
   end
   
 end
-
-# class LongJobs
-#   def camera_snap(photoset, photo_idx)
-#     sh "gphoto2 --capture-image-and-download --filename #{photoset.get_folder_path}/boink_#{photo_idx}.jpg --force-overwrite"
-#   end
-#   handle_asynchronously :camera_snap, :run_at => Proc.new { 5.seconds.from_now }
-# end

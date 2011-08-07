@@ -19,6 +19,7 @@ function PhotoView() {
     this.frames = this.canvas.set(); // List of SVG black rects
     this.images = this.canvas.set(); // List of SVG images
     this.all = this.canvas.set();
+    this.overlayImage = null;
     
     this.photoBorder = 0;
     this.compositeDim = null;
@@ -101,7 +102,14 @@ PhotoView.prototype.render = function() {
     this.all.push(img);
     
     // Draw the PNG logo overlay.
-    this.addOverlay();
+    var o = this.canvas.image(
+        '/images/overlay.png',
+        this.compositeOrigin.x,
+        this.compositeOrigin.y,
+        this.compositeDim.w,
+        this.compositeDim.h);
+    this.all.push(o);
+    this.overlayImage = o;
     
     // Hide everything and move out of sight.
     this.all.hide();
@@ -137,8 +145,10 @@ PhotoView.prototype.updatePhotoSet = function() {
                        p.zoomFrame(State.current_frame_idx, 'out', function() {
                            // If this is the last photo, then show overlay and begin reset.
                            if (State.current_frame_idx == 3) {
-                               console.log('Final frame reached, do cleanup');
-                               $('body').trigger('finalize');
+                               p.showOverlay(true);
+                               setTimeout(function() {
+                                   $('body').trigger('finalize');
+                               }, 3000);
                            }
                            // Then reset the frame index state.
                            State.current_frame_idx = (State.current_frame_idx + 1) % 4                       
@@ -165,6 +175,7 @@ PhotoView.prototype.animate = function(dir, cb) {
     if (dir === 'in') {
         this.all.show();
         this.images.hide();
+        this.overlayImage.hide();
         this.all.animate({
             'translation': WINDOW_WIDTH+",0"
             }, 1000, "<>", cb);        
@@ -173,12 +184,6 @@ PhotoView.prototype.animate = function(dir, cb) {
             'translation': WINDOW_WIDTH+",0"
         }, 1000, "<>", cb);
     }
-}
-
-PhotoView.prototype.loadImage = function(idx, url) {
-    var imgEl = this.images[idx];
-    imgEl.attr({'src': url});
-    imgEl.show();
 }
 
 /**
@@ -296,8 +301,8 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed, cb)
         sideLength,
         sideLength,
         10);
-    r.attr({'fill': 'black',
-            'fill-opacity': 0.7,
+    r.attr({'fill': '#000',
+/*            'fill-opacity': 0.7, */
             'stroke-color': 'white'});
     all.push(r);
     var txt = this.canvas.text(x + sideLength/2, y + sideLength/2, text);
@@ -306,25 +311,19 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed, cb)
         'font-weight': 'bold'
     });
     all.push(txt);
-    all.attr({'opacity': 0});
-    all.animate({
+//    all.attr({'opacity': 0});
+/*    all.animate({
         'opacity': 1,
-        'rotation': '0',
         'scale': '1.5,1.5',
         'font-size': '50'
-    }, animateSpeed, '>');
+    }, animateSpeed, '>'); */
     
+    // Timer to delete self nodes.
     var t = setTimeout(function(all) {
-        all.animate({
-            'opacity': 0,
-            'scale': '1,1',
-            'font-size': '30'
-        }, animateSpeed, '<', function() {
-            // Delete nodes
-            txt.remove();
-            r.remove();
-            if (cb) cb();
-        });
+        // Delete nodes
+        txt.remove();
+        r.remove();
+        if (cb) cb();
     }, persistTime, all);
 }
 
@@ -332,13 +331,25 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed, cb)
  * Applies the final image overlay to the composite image.
  * This will usually contain the wedding logo: 24-bit transparent PNG
  */
-PhotoView.prototype.addOverlay = function(animate) {
-    var i = this.canvas.image('/images/overlay.png', this.compositeOrigin.x, this.compositeOrigin.y, this.compositeDim.w, this.compositeDim.h);
+PhotoView.prototype.showOverlay = function(animate) {
+    this.overlayImage.show();
     if (animate) {
-        i.attr({'opacity':0});
-        i.animate({'opacity':1}, 1000);
+        //this.overlayImage.attr({'opacity':0});
+        this.overlayImage.animate({'opacity':1}, 2000);
     }
-    this.all.push(i);
+}
+/**
+ * Removes the overlay
+ */
+PhotoView.prototype.hideOverlay = function(animate) {
+    var view = this;
+    if (animate) {
+        this.overlayImage.animate({'opacity':0}, 2000, function() {
+            view.overlayImage.hide();
+        });
+    } else {
+        this.overlayImage.hide();
+    }
 }
 
 /**
@@ -351,7 +362,7 @@ function CameraUtils() {};
  */
 CameraUtils.snap = function(expected_time) {
     var now = (new Date()).getTime();
-    p.modalMessage('Cheese!');
+    p.modalMessage('Cheese!', 2000);
     p.flashEffect();
     console.log('snap at ' + now);
     console.log('delta from expected: ' + (expected_time - now));
@@ -445,7 +456,7 @@ $(window).ready(function () {
     $('body').bind('finalize', function() {
         // TODO
        p.animate('out');
-       p.modalMessage('Now printing...', 3000, 200, function() {p.next()});
+       p.modalMessage('Printing...', 3000, 200, function() {p.next()});
        //p.next();
     });
     p = new PhotoView();

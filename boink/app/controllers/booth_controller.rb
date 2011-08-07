@@ -3,8 +3,10 @@ require 'json'
 class BoothController < ApplicationController
   
   PHOTO_COUNT = 4 # number of photos that will be taken
-  PHOTO_DELAY = 10 # delay between photos being taken
-  CAMERA_INIT_LAG = 5 # delay between calling gphoto2 and the actual camera shutter snap. this value will have to be jiggered, YMMV.
+  PHOTO_FIRST_DELAY = 5 # seconds to delay first photo
+  PHOTO_DELAY = 12 # delay between photos being taken
+  CAMERA_INIT_LAG = -2.5 # delay between calling gphoto2 and the actual camera shutter snap.
+                      # this value will have to be jiggered, YMMV.
   
   def show
   end
@@ -14,7 +16,7 @@ class BoothController < ApplicationController
   def start_snap
     @response = {}
     @response[:timestamps] = []
-    start_time = (Time.now.to_i + CAMERA_INIT_LAG) * 1000
+    start_time = (Time.now.to_i + PHOTO_FIRST_DELAY) * 1000
     PHOTO_COUNT.times do |i|
       @response[:timestamps] << start_time + (PHOTO_DELAY * 1000 * i)
     end
