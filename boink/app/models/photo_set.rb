@@ -40,6 +40,11 @@ class PhotoSet < ActiveRecord::Base
   def self.get_overlay_path
     return "#{Rails.public_path}/images/overlay.png"
   end
+    
+  # Location of generated, composited photo.
+  def generated_photo_path
+    return "#{self.get_folder_path}/gen.jpg"
+  end
   
   # Takes the photos in this PhotoSet and composites them with RMagick
   # Creates an image called "gen.jpg" in the set folder.

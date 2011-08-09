@@ -1,4 +1,5 @@
 require 'json'
+require 'fileutils'
 
 class BoothController < ApplicationController
   
@@ -9,6 +10,20 @@ class BoothController < ApplicationController
                          # this value will have to be jiggered, YMMV.
   
   def show
+  end
+  
+  # Move all generated photos to a temp directory.
+  # Do this when you're done with a session.
+  def collect
+    p = PhotoSet.find :all
+    dst_dir = "/Users/andrew/workspace/tmp"
+    p.each do |pset|
+      begin
+        FileUtils.cp(pset.generated_photo_path, "#{dst_dir}/gen_#{pset.id}.jpg")
+      rescue
+        Rails.logger.error "No file #{pset.generated_photo_path}"
+      end
+    end
   end
 
   # Indicates the client is ready to begin taking photos.
