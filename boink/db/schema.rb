@@ -29,8 +29,6 @@ ActiveRecord::Schema.define(:version => 20110804035839) do
 
   create_table "photo_sets", :force => true do |t|
     t.string   "paths"
-    t.string   "final_path"
-    t.boolean  "printed",    :default => false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

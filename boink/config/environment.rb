@@ -10,6 +10,8 @@ require 'gphoto4ruby'
 # Grab camera instance.
 begin
   CAMERA = GPhoto2::Camera.new
+  # Shoot a photo because the first one always seems to take a long time.
+  CAMERA.capture.save.delete
 # HACK: DelayedJob instances will try to initialize a CAMERA instance as well.
 rescue GPhoto2::Exception 
   # Ignore all subsequent grabs.

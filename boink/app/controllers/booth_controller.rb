@@ -4,9 +4,9 @@ class BoothController < ApplicationController
   
   PHOTO_COUNT = 4 # number of photos that will be taken
   PHOTO_FIRST_DELAY = 5 # seconds to delay first photo
-  PHOTO_DELAY = 12 # delay between photos being taken
-  CAMERA_INIT_LAG = -2.5 # delay between calling gphoto2 and the actual camera shutter snap.
-                      # this value will have to be jiggered, YMMV.
+  PHOTO_DELAY = 11 # delay between photos being taken
+  CAMERA_INIT_LAG = 1 # delay between calling gphoto2 and the actual camera shutter snap.
+                         # this value will have to be jiggered, YMMV.
   
   def show
   end

@@ -5,7 +5,7 @@ include Magick
 class PhotoSet < ActiveRecord::Base
   IMAGE_HEIGHT = 800
   IMAGE_WIDTH = 1200
-  IMAGE_PADDING = 40
+  IMAGE_PADDING = 80
   
   # Query for a JPEG image reference in the model.
   def get_image_path(index)
@@ -66,7 +66,7 @@ class PhotoSet < ActiveRecord::Base
 
   def print
     photo_path = get_folder_path + "/gen.jpg"
-    # sh "lpr #{photo_path}"
+    sh "lpr #{photo_path}"
     printed = true
     save
   end

@@ -34,7 +34,7 @@ button#start-button {
     text-decoration: none;
     border-radius: 0.2em;
     box-shadow:0 1px 3px rgba(0,0,0,0.8);
-    text-shadow: 0 -1px 2px rgba(0,0,0,0.25);
+    text-shadow: 0 -1px 2px rgba(0, 0, 0, 0.25);
     border-bottom: 2px solid rgba(0,0,0,0.25);
     position: relative;
     cursor: pointer;
@@ -80,7 +80,7 @@ button.awesome.boinkyellow {
     -webkit-animation-iteration-count: infinite;
 }
 @-webkit-keyframes yellowPulse {
-    from { background-color: #F5BE1B; }
-    50% { background-color: #FCE03F; }
-    to { background-color: #F5BE1B; }
+    from { background-color: #F5BE1B; margin-top: 0; }
+    50% { background-color: #FFD000; margin-top: 10px; }
+    to { background-color: #F5BE1B; margin-top: 0; }
 }

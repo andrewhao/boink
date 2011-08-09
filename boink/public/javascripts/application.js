@@ -301,8 +301,8 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed, cb)
         sideLength,
         sideLength,
         10);
-    r.attr({'fill': '#000',
-/*            'fill-opacity': 0.7, */
+    r.attr({'fill': '#222',
+            'fill-opacity': 0.7,
             'stroke-color': 'white'});
     all.push(r);
     var txt = this.canvas.text(x + sideLength/2, y + sideLength/2, text);
@@ -362,7 +362,7 @@ function CameraUtils() {};
  */
 CameraUtils.snap = function(expected_time) {
     var now = (new Date()).getTime();
-    p.modalMessage('Cheese!', 2000);
+    p.modalMessage('Cheese!', 4000);
     p.flashEffect();
     console.log('snap at ' + now);
     console.log('delta from expected: ' + (expected_time - now));
