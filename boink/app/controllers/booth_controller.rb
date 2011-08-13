@@ -4,12 +4,19 @@ require 'fileutils'
 class BoothController < ApplicationController
   
   PHOTO_COUNT = 4 # number of photos that will be taken
-  PHOTO_FIRST_DELAY = 5 # seconds to delay first photo
-  PHOTO_DELAY = 11 # delay between photos being taken
-  CAMERA_INIT_LAG = 1 # delay between calling gphoto2 and the actual camera shutter snap.
-                         # this value will have to be jiggered, YMMV.
+  CAMERA_INIT_LAG = 0 # delay between calling gphoto2 and the actual camera shutter snap.
+                      # this value will have to be jiggered, YMMV.
+  PHOTO_COUNTDOWN = 3.5 # 3, 2, 1...
+  BROWSER_TIME_FUDGE = 0 # Extra fudge factor because we can't always trust the Webkit render engine to fire correctly.
   
   def show
+  end
+  
+  def slideshow
+    @psets = PhotoSet.find :all
+    @psets.each_with_index do |pset, i|
+      # do stuff.
+    end
   end
   
   # Move all generated photos to a temp directory.
@@ -27,25 +34,16 @@ class BoothController < ApplicationController
   end
 
   # Indicates the client is ready to begin taking photos.
-  # Returns a set of timestamps the camera will click at.
-  def start_snap
+  # Supply a "new_set" = true to create a new photo set on the backend.
+  # Supply "set_id" param to add a photo to an existing set.
+  def snap
     @response = {}
-    @response[:timestamps] = []
-    start_time = (Time.now.to_i + PHOTO_FIRST_DELAY) * 1000
-    PHOTO_COUNT.times do |i|
-      @response[:timestamps] << start_time + (PHOTO_DELAY * 1000 * i)
-    end
-
-    @pset = PhotoSet.create    
+    start_time = Time.now.to_i + PHOTO_COUNTDOWN - CAMERA_INIT_LAG + BROWSER_TIME_FUDGE
+    @pset = params[:new_set] ? PhotoSet.create : PhotoSet.find(params[:set_id])
+    Rails.logger.debug ("AHAO with params[newset] = #{params[:new_set]} and set_id of #{params[:set_id]} and pset of #{@pset}")
     @response[:set_id] = @pset.id
 
-    # Enqueue each job for the future @ the scheduled interval.
-    @response[:timestamps].each_with_index do |ts, idx|
-      ts = (ts/1000) - CAMERA_INIT_LAG;
-      Rails.logger.debug "AHAO I am planning to capture photo #{idx} at: #{ts}"
-      Rails.logger.debug "AHAO ...which is #{ts - Time.now.to_i } seconds in the future."
-      Delayed::Job.enqueue(CameraSnapJob.new(@pset, idx), {:run_at => Time.at(ts)});
-    end
+    Delayed::Job.enqueue(CameraSnapJob.new(@pset, false), {:run_at => Time.at(start_time)});
 
     render :json => @response
   end

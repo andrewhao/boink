@@ -3,17 +3,17 @@ require 'json'
 ##
 # Takes a picture
 # @param photoset Photoset instance that this picture will belong to.
-# @param idx Index of photo
-class CameraSnapJob < Struct.new(:photoset, :idx)
+# @param has_printer Whether or not a print command should be sent when finished compositing.
+class CameraSnapJob < Struct.new(:photoset, :has_printer)
   IMG_WIDTH = 600
 
   def before(job)
-    Rails.logger.debug "AHAO beginning task for photo #{idx} at #{Time.now}, or #{Time.now.to_i}."
+    Rails.logger.debug "AHAO beginning task for photo #{photoset.get_paths.size()} at #{Time.now}, or #{Time.now.to_i}."
   end
   
   def perform
     image_folder = photoset.get_folder_path
-    image_name = "boink_#{idx}.jpg"
+    image_name = "boink_#{photoset.get_paths.size()}.jpg"
 
     `mkdir -p #{image_folder}`
     CAMERA.capture.save({:to_folder => image_folder, :new_name => image_name}).delete
@@ -26,14 +26,14 @@ class CameraSnapJob < Struct.new(:photoset, :idx)
   end
   
   def success(job)
-    url_image_path = "#{photoset.get_url_folder_path}/boink_#{idx}.jpg"
+    url_image_path = "#{photoset.get_url_folder_path}/boink_#{photoset.get_paths.size()}.jpg"
     Rails.logger.debug "AHAO CameraSnapJob finished at #{Time.now.to_i}"
     # Store the filename in the photoset object.
-    photoset.set_image_path(idx, url_image_path)
+    photoset.set_image_path(photoset.get_paths.size(), url_image_path)
     Rails.logger.debug "AHAO Saved new image into PhotoSet path: #{photoset.get_paths}"
-    if idx == 3
+    if photoset.get_paths.size() == 4
       photoset.composite_photos
-      photoset.print
+      photoset.print if has_printer
     end
   end
   

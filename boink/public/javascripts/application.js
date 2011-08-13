@@ -3,7 +3,7 @@
 
 var PHOTO_MARGIN = 50; // Margin for the composite photo per side
 var WINDOW_WIDTH = $(window).width();
-var WINDOW_HEIGHT = $(window).height();
+var WINDOW_HEIGHT = $(window).height() - 10;
 
 // Current app state 
 var State = {
@@ -15,7 +15,7 @@ var State = {
 
 function PhotoView() {
     this.container = $('#viewport');
-    this.canvas = new Raphael('viewport', $(window).width(), $(window).height());
+    this.canvas = new Raphael('viewport', WINDOW_WIDTH, WINDOW_HEIGHT);
     this.frames = this.canvas.set(); // List of SVG black rects
     this.images = this.canvas.set(); // List of SVG images
     this.all = this.canvas.set();
@@ -148,10 +148,14 @@ PhotoView.prototype.updatePhotoSet = function() {
                                p.showOverlay(true);
                                setTimeout(function() {
                                    $('body').trigger('finalize');
-                               }, 3000);
+                               }, 5000);
+                           } else {
+                               // Then reset the frame index state.
+                               State.current_frame_idx = (State.current_frame_idx + 1) % 4
+
+                               // Now move on to the next frame.
+                               CameraUtils.snap();
                            }
-                           // Then reset the frame index state.
-                           State.current_frame_idx = (State.current_frame_idx + 1) % 4                       
                        });                       
                    }
 
@@ -276,14 +280,18 @@ PhotoView.prototype.resetState = function () {
     };
 }
 
+/**
+ * Faux camera flash
+ */
 PhotoView.prototype.flashEffect = function(duration) {
     if (!duration) { duration = 200; }
     var rect = this.canvas.rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     rect.attr({'fill': 'white', 'opacity': 0});
     rect.animate({'opacity': 1}, duration, ">", function() {
         rect.animate({'opacity': 0}, duration, "<");
+        rect.remove();
     })
-    rect.remove();
+
 }
 
 /**
@@ -360,12 +368,9 @@ function CameraUtils() {};
 /**
  * Play the snap effect.
  */
-CameraUtils.snap = function(expected_time) {
-    var now = (new Date()).getTime();
+CameraUtils.showsnap = function() {
     p.modalMessage('Cheese!', 4000);
     p.flashEffect();
-    console.log('snap at ' + now);
-    console.log('delta from expected: ' + (expected_time - now));
     p.updatePhotoSet();
 }
 
@@ -389,8 +394,7 @@ CameraUtils.scale4x6 = function(maxw, maxh) {
  * Wrapper around snap()
  * Will count a 3-2-1 countdown before snap() is invoked.
  */
-CameraUtils.countdown = function(expected) {
-    console.log('countdown with expected time of: '+expected);
+CameraUtils.countdown = function() {
     // Zoom in
     p.zoomFrame(State.current_frame_idx, 'in');
     p.modalMessage('Ready?', 500);
@@ -400,14 +404,24 @@ CameraUtils.countdown = function(expected) {
         console.log(counter);
         p.modalMessage(counter);
         if (counter == 1) {
-            console.log('Expected to snap at: ' + expected);
             clearInterval(countdownTimer);
             setTimeout(function() {
-                CameraUtils.snap(expected);
+                CameraUtils.showsnap();
             }, 1000);
         }
         counter -= 1;
     }, 1000);
+}
+
+CameraUtils.snap = function(newSet) {
+    $.get('snap', {'new_set': newSet, 'set_id': State.set_id }, function(data) {
+        // Temp logging
+        console.log("next snap: set_id is: "+data.set_id);
+
+        // Set the current state
+        State.set_id = data.set_id;
+        CameraUtils.countdown();
+    });
 }
 
 $(window).ready(function () {
@@ -425,38 +439,13 @@ $(window).ready(function () {
     startButton.click(function(e) {
         var button = $(e.currentTarget);
         button.fadeOut(1000);
-        
-        $.get('start_snap', null, function(data) {
-            // Temp logging
-            console.log("set_id is: "+data.set_id);
-            console.log("timestamps are: "+data.timestamps);
-            
-            // Set the current state
-            State.set_id = data.set_id;
-            
-            // Set global
-            var timestamps = data.timestamps;
-            var time_now = (new Date()).getTime();
-
-            while(timestamps.length > 0) {
-                var closest_ts = timestamps.pop();
-                var ts_delta = closest_ts - time_now - 4000;
-                console.log('delta is:' + ts_delta);
-
-                console.log('next expected time to snap at is:' + closest_ts);
-                console.log('im going up at: ' + ts_delta);
-                // Start countdown
-                setTimeout(function(expect) {
-                    CameraUtils.countdown(expect);
-                }, ts_delta, closest_ts);
-            }
-        });
+        CameraUtils.snap(true);
     });
     
     $('body').bind('finalize', function() {
         // TODO
        p.animate('out');
-       p.modalMessage('Printing...', 3000, 200, function() {p.next()});
+       p.modalMessage('Looking good!', 3000, 200, function() {p.next()});
        //p.next();
     });
     p = new PhotoView();
