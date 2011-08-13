@@ -154,7 +154,7 @@ PhotoView.prototype.updatePhotoSet = function() {
                                State.current_frame_idx = (State.current_frame_idx + 1) % 4
 
                                // Now move on to the next frame.
-                               CameraUtils.snap();
+                               CameraUtils.countdown();
                            }
                        });                       
                    }
@@ -308,23 +308,23 @@ PhotoView.prototype.modalMessage = function(text, persistTime, animateSpeed, cb)
     var r = this.canvas.rect(x, y,
         sideLength,
         sideLength,
-        10);
+        15);
     r.attr({'fill': '#222',
             'fill-opacity': 0.7,
             'stroke-color': 'white'});
     all.push(r);
     var txt = this.canvas.text(x + sideLength/2, y + sideLength/2, text);
     txt.attr({'fill': 'white',
-        'font-size': '30',
+        'font-size': '50',
         'font-weight': 'bold'
     });
     all.push(txt);
-//    all.attr({'opacity': 0});
-/*    all.animate({
+    all.attr({'opacity': 0});
+    all.animate({
         'opacity': 1,
         'scale': '1.5,1.5',
-        'font-size': '50'
-    }, animateSpeed, '>'); */
+        'font-size': '70'
+    }, animateSpeed, '>');
     
     // Timer to delete self nodes.
     var t = setTimeout(function(all) {
@@ -368,10 +368,15 @@ function CameraUtils() {};
 /**
  * Play the snap effect.
  */
-CameraUtils.showsnap = function() {
-    p.modalMessage('Cheese!', 4000);
-    p.flashEffect();
-    p.updatePhotoSet();
+CameraUtils.snap = function(newSet) {
+    p.modalMessage('...', 2000);
+    setTimeout(function() {p.modalMessage('Cheese!', 2000)}, 2000);
+    $.get('snap', {'new_set': newSet, 'set_id': State.set_id }, function(data) {
+        // Set the current state
+        State.set_id = data.set_id;
+        p.updatePhotoSet();
+    });
+//    p.flashEffect();
 }
 
 /**
@@ -394,34 +399,23 @@ CameraUtils.scale4x6 = function(maxw, maxh) {
  * Wrapper around snap()
  * Will count a 3-2-1 countdown before snap() is invoked.
  */
-CameraUtils.countdown = function() {
+CameraUtils.countdown = function(newSet) {
     // Zoom in
     p.zoomFrame(State.current_frame_idx, 'in');
     p.modalMessage('Ready?', 500);
 
-    var counter = 3;
+    var counter = 4;
     var countdownTimer = setInterval(function() {
         console.log(counter);
         p.modalMessage(counter);
         if (counter == 1) {
             clearInterval(countdownTimer);
             setTimeout(function() {
-                CameraUtils.showsnap();
+                CameraUtils.snap(newSet);
             }, 1000);
         }
         counter -= 1;
     }, 1000);
-}
-
-CameraUtils.snap = function(newSet) {
-    $.get('snap', {'new_set': newSet, 'set_id': State.set_id }, function(data) {
-        // Temp logging
-        console.log("next snap: set_id is: "+data.set_id);
-
-        // Set the current state
-        State.set_id = data.set_id;
-        CameraUtils.countdown();
-    });
 }
 
 $(window).ready(function () {
@@ -439,13 +433,13 @@ $(window).ready(function () {
     startButton.click(function(e) {
         var button = $(e.currentTarget);
         button.fadeOut(1000);
-        CameraUtils.snap(true);
+        CameraUtils.countdown(true);
     });
     
     $('body').bind('finalize', function() {
         // TODO
        p.animate('out');
-       p.modalMessage('Looking good!', 3000, 200, function() {p.next()});
+       p.modalMessage('Nice!', 3000, 200, function() {p.next()});
        //p.next();
     });
     p = new PhotoView();

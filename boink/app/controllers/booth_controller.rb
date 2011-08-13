@@ -43,7 +43,7 @@ class BoothController < ApplicationController
     Rails.logger.debug ("AHAO with params[newset] = #{params[:new_set]} and set_id of #{params[:set_id]} and pset of #{@pset}")
     @response[:set_id] = @pset.id
 
-    Delayed::Job.enqueue(CameraSnapJob.new(@pset, false), {:run_at => Time.at(start_time)});
+    Delayed::Job.enqueue(CameraSnapJob.new(@pset, false)) #{:run_at => Time.at(start_time)});
 
     render :json => @response
   end
