@@ -17,6 +17,10 @@ At the prompt:
 
 `bundle install`
 
+Custom branding
+---
+If you'd like, you should replace `overlay.png` with your own event branding. It's a PNG image with 3:2 aspect ratio. You should use 24-bit PNG images with alpha transparency. The image will be overlaid on top of the 2x2 photo matrix.
+
 Running the booth
 ---
 At application root, run `rake jobs:work`. This starts up the job queue processor.
