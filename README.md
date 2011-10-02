@@ -7,6 +7,8 @@ Boink is a Rails-based camera server that controls a camera over USB (most camer
 
 See an example here (coming soon).
 
+In case anybody's wondering, we're running a [Rails 3](http://rubyonrails.org) instance, with a backend powered by [gphoto4ruby](http://rubyforge.org/projects/gphoto4ruby/), and a frontend powered by [jQuery](http://jquery.com) and [RaphaelJS](http://raphaeljs.com).
+
 Setup
 ---
 Currently, this software is developed on OS X, but YMMV on other OSes.
@@ -36,6 +38,9 @@ On OS X, it's important to kill the PTP daemon each time the camera is plugged i
 
 Note that this is done automatically by Boink at startup.
 
+License
+---
+Boink is open-sourced under the [MIT](http://www.opensource.org/licenses/mit-license.php) and [GPL](http://www.gnu.org/copyleft/gpl.html) licenses.
 
 Links
 ---
