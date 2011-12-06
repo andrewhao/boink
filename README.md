@@ -1,6 +1,8 @@
 Boink is an open-source photobooth made slick, simple and free.
 ===
 
+### Attention! Boink is rewritten in [Node](http://www.nodejs.org) and it's a heckuva lot more reliable than it used to. Visit the [shmile](http://www.github.com/andrewhao/shmile) project page for more details.
+
 Description
 ---
 Boink is a Rails-based camera server that controls a camera over USB (most camera models [supported by gphoto2](http://www.gphoto.org/proj/libgphoto2/support.php)). It coordinates a frontend interface that can be controlled by your photobooth participants.
